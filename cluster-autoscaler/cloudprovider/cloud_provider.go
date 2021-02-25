@@ -22,8 +22,9 @@ import (
 
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/autoscaler/cluster-autoscaler/config"
 	"k8s.io/autoscaler/cluster-autoscaler/utils/errors"
-	schedulerframework "k8s.io/kubernetes/pkg/scheduler/framework/v1alpha1"
+	schedulerframework "k8s.io/kubernetes/pkg/scheduler/framework"
 )
 
 const (
@@ -37,6 +38,8 @@ const (
 	BaiducloudProviderName = "baiducloud"
 	// CloudStackProviderName gets the provider name of cloudstack
 	CloudStackProviderName = "cloudstack"
+	// ClusterAPIProiverName gets the provider name of clusterapi
+	ClusterAPIProiverName = "clusterapi"
 	// DigitalOceanProviderName gets the provider name of digitalocean
 	DigitalOceanProviderName = "digitalocean"
 	// ExoscaleProviderName gets the provider name of exoscale
@@ -49,6 +52,12 @@ const (
 	KubemarkProviderName = "kubemark"
 	// HuaweicloudProviderName gets the provider name of huaweicloud
 	HuaweicloudProviderName = "huaweicloud"
+	// IonoscloudProviderName gets the provider name of ionoscloud
+	IonoscloudProviderName = "ionoscloud"
+	// OVHcloudProviderName gets the provider name of ovhcloud
+	OVHcloudProviderName = "ovhcloud"
+	// LinodeProviderName gets the provider name of linode
+	LinodeProviderName = "linode"
 )
 
 // CloudProvider contains configuration info and functions for interacting with
@@ -99,7 +108,7 @@ type CloudProvider interface {
 // ErrNotImplemented is returned if a method is not implemented.
 var ErrNotImplemented = errors.NewAutoscalerError(errors.InternalError, "Not implemented")
 
-// ErrAlreadyExist is returned if a method is not implemented.
+// ErrAlreadyExist is returned if a method already exists.
 var ErrAlreadyExist = errors.NewAutoscalerError(errors.InternalError, "Already exist")
 
 // ErrIllegalConfiguration is returned when trying to create NewNodeGroup with
@@ -173,6 +182,11 @@ type NodeGroup interface {
 	// Autoprovisioned returns true if the node group is autoprovisioned. An autoprovisioned group
 	// was created by CA and can be deleted when scaled to 0.
 	Autoprovisioned() bool
+
+	// GetOptions returns NodeGroupAutoscalingOptions that should be used for this particular
+	// NodeGroup. Returning a nil will result in using default options.
+	// Implementation optional.
+	GetOptions(defaults config.NodeGroupAutoscalingOptions) (*config.NodeGroupAutoscalingOptions, error)
 }
 
 // Instance represents a cloud-provider node. The node does not necessarily map to k8s node
