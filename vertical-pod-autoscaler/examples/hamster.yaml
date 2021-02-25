@@ -10,6 +10,7 @@ kind: VerticalPodAutoscaler
 metadata:
   name: hamster-vpa
 spec:
+  recommenderName: default
   targetRef:
     apiVersion: "apps/v1"
     kind: Deployment

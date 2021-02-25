@@ -306,15 +306,27 @@ func (feeder *clusterStateFeeder) GarbageCollectCheckpoints() {
 // Fetch VPA objects and load them into the cluster state.
 func (feeder *clusterStateFeeder) LoadVPAs() {
 	// List VPA API objects.
-	vpaCRDs, err := feeder.vpaLister.List(labels.Everything())
+	allVpaCRDs, err := feeder.vpaLister.List(labels.Everything())
 	if err != nil {
 		klog.Errorf("Cannot list VPAs. Reason: %+v", err)
 		return
 	}
+
+	var vpaCRDs []*vpa_types.VerticalPodAutoscaler
+	for _, vpaCRD := range allVpaCRDs {
+		currentRecommenderName := feeder.clusterState.RecommenderName
+		if (vpaCRD.Spec.RecommenderName != currentRecommenderName) && (vpaCRD.Spec.RecommenderName != "") {
+			klog.V(6).Infof("Ignoring the vpaCRD as its name %v is not equal to the current recommender's name %v", vpaCRD.Spec.RecommenderName, currentRecommenderName)
+			continue
+		}
+		vpaCRDs = append(vpaCRDs, vpaCRD)
+	}
+
 	klog.V(3).Infof("Fetched %d VPAs.", len(vpaCRDs))
 	// Add or update existing VPAs in the model.
 	vpaKeys := make(map[model.VpaID]bool)
 	for _, vpaCRD := range vpaCRDs {
+
 		vpaID := model.VpaID{
 			Namespace: vpaCRD.Namespace,
 			VpaName:   vpaCRD.Name,

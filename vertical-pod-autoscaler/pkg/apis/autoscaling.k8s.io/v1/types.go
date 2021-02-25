@@ -59,7 +59,8 @@ type VerticalPodAutoscaler struct {
 
 // VerticalPodAutoscalerSpec is the specification of the behavior of the autoscaler.
 type VerticalPodAutoscalerSpec struct {
-
+	// Denote the recommender to be used
+	RecommenderName string `json:"recommenderName,omitempty" protobuf:"bytes,1,opt,name=recommenderName"`
 	// TargetRef points to the controller managing the set of pods for the
 	// autoscaler to control - e.g. Deployment, StatefulSet. VerticalPodAutoscaler
 	// can be targeted at controller implementing scale subresource (the pod set is
