@@ -39,14 +39,18 @@ const (
 	defaultOperationWaitTimeout          = 20 * time.Second
 	defaultOperationPollInterval         = 100 * time.Millisecond
 	defaultOperationDeletionPollInterval = 1 * time.Second
-	// ErrorCodeQuotaExceeded is error code used in InstanceErrorInfo if quota exceeded error occurs.
+	// ErrorCodeQuotaExceeded is an error code used in InstanceErrorInfo if quota exceeded error occurs.
 	ErrorCodeQuotaExceeded = "QUOTA_EXCEEDED"
 
-	// ErrorCodeResourcePoolExhausted is error code used in InstanceErrorInfo if requested resources
+	// ErrorCodeResourcePoolExhausted is an error code used in InstanceErrorInfo if requested resources
 	// cannot be provisioned by cloud provider.
 	ErrorCodeResourcePoolExhausted = "RESOURCE_POOL_EXHAUSTED"
 
-	// ErrorCodeOther is error code used in InstanceErrorInfo if other error occurs.
+	// ErrorIPSpaceExhausted is an error code used in InstanceErrorInfo if the IP space has been
+	// exhausted.
+	ErrorIPSpaceExhausted = "IP_SPACE_EXHAUSTED"
+
+	// ErrorCodeOther is an error code used in InstanceErrorInfo if other error occurs.
 	ErrorCodeOther = "OTHER"
 )
 
@@ -81,11 +85,12 @@ type autoscalingGceClientV1 struct {
 }
 
 // NewAutoscalingGceClientV1 creates a new client for communicating with GCE v1 API.
-func NewAutoscalingGceClientV1(client *http.Client, projectId string) (*autoscalingGceClientV1, error) {
+func NewAutoscalingGceClientV1(client *http.Client, projectId string, userAgent string) (*autoscalingGceClientV1, error) {
 	gceService, err := gce.New(client)
 	if err != nil {
 		return nil, err
 	}
+	gceService.UserAgent = userAgent
 
 	return &autoscalingGceClientV1{
 		projectId:                     projectId,
@@ -260,9 +265,12 @@ func (client *autoscalingGceClientV1) FetchMigInstances(migRef GceRef) ([]cloudp
 				if isResourcePoolExhaustedErrorCode(instanceError.Code) {
 					errorInfo.ErrorClass = cloudprovider.OutOfResourcesErrorClass
 					errorInfo.ErrorCode = ErrorCodeResourcePoolExhausted
-				} else if isQuotaExceededErrorCoce(instanceError.Code) {
+				} else if isQuotaExceededErrorCode(instanceError.Code) {
 					errorInfo.ErrorClass = cloudprovider.OutOfResourcesErrorClass
 					errorInfo.ErrorCode = ErrorCodeQuotaExceeded
+				} else if isIPSpaceExhaustedErrorCode(instanceError.Code) {
+					errorInfo.ErrorClass = cloudprovider.OtherErrorClass
+					errorInfo.ErrorCode = ErrorIPSpaceExhausted
 				} else if isInstanceNotRunningYet(gceInstance) {
 					if !errorFound {
 						// do not override error code with OTHER
@@ -314,8 +322,12 @@ func isResourcePoolExhaustedErrorCode(errorCode string) bool {
 	return errorCode == "RESOURCE_POOL_EXHAUSTED" || errorCode == "ZONE_RESOURCE_POOL_EXHAUSTED" || errorCode == "ZONE_RESOURCE_POOL_EXHAUSTED_WITH_DETAILS"
 }
 
-func isQuotaExceededErrorCoce(errorCode string) bool {
+func isQuotaExceededErrorCode(errorCode string) bool {
 	return strings.Contains(errorCode, "QUOTA")
+}
+
+func isIPSpaceExhaustedErrorCode(errorCode string) bool {
+	return strings.Contains(errorCode, "IP_SPACE_EXHAUSTED")
 }
 
 func isInstanceNotRunningYet(gceInstance *gce.ManagedInstance) bool {

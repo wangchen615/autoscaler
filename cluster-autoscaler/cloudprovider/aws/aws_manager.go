@@ -41,7 +41,7 @@ import (
 	"k8s.io/autoscaler/cluster-autoscaler/cloudprovider"
 	"k8s.io/autoscaler/cluster-autoscaler/utils/gpu"
 	klog "k8s.io/klog/v2"
-	kubeletapis "k8s.io/kubernetes/pkg/kubelet/apis"
+	kubeletapis "k8s.io/kubelet/pkg/apis"
 	provider_aws "k8s.io/legacy-cloud-providers/aws"
 )
 
@@ -294,8 +294,9 @@ func (m *AwsManager) DeleteInstances(instances []*AwsInstanceRef) error {
 	if err := m.asgCache.DeleteInstances(instances); err != nil {
 		return err
 	}
-	klog.V(2).Infof("Some ASG instances might have been deleted, forcing ASG list refresh")
-	return m.forceRefresh()
+	klog.V(2).Infof("DeleteInstances was called: scheduling an ASG list refresh for next main loop evaluation")
+	m.lastRefresh = time.Now().Add(-refreshInterval)
+	return nil
 }
 
 // GetAsgNodes returns Asg nodes.
@@ -376,10 +377,10 @@ func (m *AwsManager) buildNodeFromTemplate(asg *asg, template *asgTemplate) (*ap
 	// TODO: use proper allocatable!!
 	node.Status.Allocatable = node.Status.Capacity
 
-	// NodeLabels
-	node.Labels = cloudprovider.JoinStringMaps(node.Labels, extractLabelsFromAsg(template.Tags))
 	// GenericLabels
 	node.Labels = cloudprovider.JoinStringMaps(node.Labels, buildGenericLabels(template, nodeName))
+	// NodeLabels
+	node.Labels = cloudprovider.JoinStringMaps(node.Labels, extractLabelsFromAsg(template.Tags))
 
 	node.Spec.Taints = extractTaintsFromAsg(template.Tags)
 

@@ -18,6 +18,7 @@ package gce
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"testing"
 
@@ -29,7 +30,7 @@ import (
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	quota "k8s.io/apiserver/pkg/quota/v1"
-	kubeletapis "k8s.io/kubernetes/pkg/kubelet/apis"
+	kubeletapis "k8s.io/kubelet/pkg/apis"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -454,19 +455,19 @@ func TestBuildCapacityMemory(t *testing.T) {
 			physicalCpu:            1,
 			physicalMemory:         2 * units.GiB,
 			os:                     OperatingSystemLinux,
-			expectedCapacityMemory: 2*units.GiB - 32*units.MiB - kernelReservedMemory,
+			expectedCapacityMemory: 2*units.GiB - 32*units.MiB - kernelReservedMemory - int64(math.Min(correctionConstant*float64(2*units.GiB), maximumCorrectionValue)) - lowMemoryOffset,
 		},
 		{
 			physicalCpu:            2,
 			physicalMemory:         4 * units.GiB,
 			os:                     OperatingSystemLinux,
-			expectedCapacityMemory: 4*units.GiB - 64*units.MiB - kernelReservedMemory - swiotlbReservedMemory,
+			expectedCapacityMemory: 4*units.GiB - 64*units.MiB - kernelReservedMemory - swiotlbReservedMemory - int64(math.Min(correctionConstant*float64(4*units.GiB), maximumCorrectionValue)) - lowMemoryOffset,
 		},
 		{
 			physicalCpu:            32,
 			physicalMemory:         128 * units.GiB,
 			os:                     OperatingSystemLinux,
-			expectedCapacityMemory: 128*units.GiB - 2*units.GiB - kernelReservedMemory - swiotlbReservedMemory,
+			expectedCapacityMemory: 128*units.GiB - 2*units.GiB - kernelReservedMemory - swiotlbReservedMemory - int64(math.Min(correctionConstant*float64(128*units.GiB), maximumCorrectionValue)),
 		},
 		{
 			physicalCpu:            2,

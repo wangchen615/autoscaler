@@ -466,12 +466,19 @@ If there are multiple node groups that, if increased, would help with getting so
 different strategies can be selected for choosing which node group is increased. Check [What are Expanders?](#what-are-expanders) section to learn more about strategies.
 
 It may take some time before the created nodes appear in Kubernetes. It almost entirely
-depends on the cloud provider and the speed of node provisioning. Cluster
-Autoscaler expects requested nodes to appear within 15 minutes
+depends on the cloud provider and the speed of node provisioning, including the
+[TLS bootstrapping process](https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet-tls-bootstrapping/).
+Cluster Autoscaler expects requested nodes to appear within 15 minutes
 (configured by `--max-node-provision-time` flag.) After this time, if they are
 still unregistered, it stops considering them in simulations and may attempt to scale up a
 different group if the pods are still pending. It will also attempt to remove
 any nodes left unregistered after this time.
+
+> Note: Cluster Autoscaler is **not** responsible for behaviour and registration
+> to the cluster of the new nodes it creates. The responsibility of registering the new nodes
+> into your cluster lies with the cluster provisioning tooling you use.
+> Example: If you use kubeadm to provision your cluster, it is up to you to automatically
+> execute `kubeadm join` at boot time via some script.
 
 ### How does scale-down work?
 
@@ -664,6 +671,7 @@ The following startup parameters are supported for cluster autoscaler:
 | `estimator` | Type of resource estimator to be used in scale up | binpacking
 | `expander` | Type of node group expander to be used in scale up.  | random
 | `write-status-configmap` | Should CA write status information to a configmap  | true
+| `status-config-map-name` | The name of the status ConfigMap that CA writes  | cluster-autoscaler-status
 | `max-inactivity` | Maximum time from last recorded autoscaler activity before automatic restart | 10 minutes
 | `max-failing-time` | Maximum time from last recorded successful autoscaler run before automatic restart | 15 minutes
 | `balance-similar-node-groups` | Detect similar node groups and balance the number of nodes between them | false
@@ -918,40 +926,17 @@ Cluster Autoscaler imports a huge chunk of internal k8s code as it calls out to 
 Therefore we want to keep set of libraries used in CA as close to one used by k8s, to avoid
 unexpected problems coming from version incompatibilities.
 
-Cluster Autoscaler depends on `go modules` mechanism for dependency management, but do not use it directly
-during build process. `go.mod` file is just used to generate the `vendor` directory and further compilation
-is run against set of libraries stored in `vendor`. `vendor` directory can be regenerated using [`update-vendor.sh`](https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/hack/update-vendor.sh) script.
-The `update-vendor.sh` script is responsible for autogenerating `go.mod` file used by Cluster Autoscaler. The base
-of the file is `go.mod` file coming from [kubernetes/kubernetes](https://github.com/kubernetes/kubernetes) repository.
-On top of that script adds modifications as defined
-locally in [`go.mod-extra`](https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/go.mod-extra) file.
-
-Note: It is important that one should **never manually edit** `go.mod` file as it is regenerated
-on each `update-vendor.sh` call. Any extra libraries or version overrides should be put in `go.mod-extra` file (syntax of the file
-is same as syntax of `go.mod` file).
-
-Finally `vendor` directry is materialized and validation tests are run.
-
-If everything completes correctly a commit with updated `vendor` directory is created automatically. The pull-request with changed vendor
-must be sent out manually. The PR should include the auto-generated commit as well as commits containing any manual changes/fixes that need to
-go together.
-
-Execution of `update-vendor.sh` can be parametrized using command line argumets:
- - `-f` - kubernetes/kubernetes fork to use. On `master` it defaults to `git@github.com:kubernetes/kubernetes.git`
- - `-r` - revision in kubernetes/kubernetes which should be used to get base `go.mod` file
- - `-d` - specifies script workdir; useful to speed up execution if script needs to be run multiple times, because updating vendor resulted in some compilation errors on Cluster-Autoscaler side which need to be fixed
- - `-o` - overrides go version check, which may be useful if CA needs to use a different go version than the one in kubernetes go.mod file
+To sync the repositories' vendored k8s libraries, we have a script that takes a
+released version of k8s and updates the `replace` directives of each k8s
+sub-library. It can be used with custom kubernetes fork, by default it uses
+`git@github.com:kubernetes/kubernetes.git`.
 
 Example execution looks like this:
 ```
-./hack/update-vendor.sh -d/tmp/ca-update-vendor.ou1l -fgit@github.com:kubernetes/kubernetes.git -rmaster
+./hack/update-vendor.sh 1.20.0-alpha.1 git@github.com:kubernetes/kubernetes.git
 ```
 
-Caveats:
- - `update-vendor.sh` is called directly in shell (no docker is used) therefore its operation may differ from environment to environment.
- - It is important that go version, which isn in use in the shell in which `update-vendor.sh` is called, matches the `go <version>` directive specified in `go.mod` file
-   in `kubernetes/kubernetes` revision against which revendoring is done.
- - `update-vendor.sh` automatically runs unit tests as part of verification process. If one needs to suppress that, it can be done by overriding `VERIFY_COMMAND` variable (`VERIFY_COMMAND=true ./hack/update-vendor.sh ...`)
- - If one wants to only add new libraries to `go.mod-extra`, but not change the base `go.mod`, `-r` should be used with kubernetes/kubernets revision, which was used last time `update-vendor.sh` was called. One can determine that revision by looking at `git log` in Cluster Autoscaler repository. Following command will do the trick `git log | grep "Updating vendor against"`.
-
-
+If you need to update vendor to an unreleased commit of Kubernetes, you can use the breakglass script:
+```
+./hack/submodule-k8s.sh <k8s commit sha> git@github.com:kubernetes/kubernetes.git
+```

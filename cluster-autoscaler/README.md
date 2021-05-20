@@ -19,11 +19,13 @@ You should also take a look at the notes and "gotchas" for your specific cloud p
 * [BaiduCloud](./cloudprovider/baiducloud/README.md)
 * [CloudStack](./cloudprovider/cloudstack/README.md)
 * [HuaweiCloud](./cloudprovider/huaweicloud/README.md)
+* [Hetzner](./cloudprovider/hetzner/README.md)
 * [Packet](./cloudprovider/packet/README.md#notes) 
 * [IonosCloud](./cloudprovider/ionoscloud/README.md)
 * [OVHcloud](./cloudprovider/ovhcloud/README.md)
 * [Linode](./cloudprovider/linode/README.md)
 * [ClusterAPI](./cloudprovider/clusterapi/README.md)
+* [BizflyCloud](./cloudprovider/bizflycloud/README.md)
 
 # Releases
 
@@ -155,3 +157,5 @@ Supported cloud providers:
 * Packet https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/packet/README.md
 * OVHcloud https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/ovhcloud/README.md
 * Linode https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/linode/README.md
+* Hetzner https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/hetzner/README.md
+* Cluster API https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/clusterapi/README.md
