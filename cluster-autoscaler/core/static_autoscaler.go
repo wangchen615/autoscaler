@@ -148,12 +148,15 @@ func NewStaticAutoscaler(
 
 	scaleDown := NewScaleDown(autoscalingContext, processors, clusterStateRegistry)
 
+	// Set the initial scale times to be less than the start time so as to
+	// not start in cooldown mode.
+	initialScaleTime := time.Now().Add(-time.Hour)
 	return &StaticAutoscaler{
 		AutoscalingContext:      autoscalingContext,
 		startTime:               time.Now(),
-		lastScaleUpTime:         time.Now(),
-		lastScaleDownDeleteTime: time.Now(),
-		lastScaleDownFailTime:   time.Now(),
+		lastScaleUpTime:         initialScaleTime,
+		lastScaleDownDeleteTime: initialScaleTime,
+		lastScaleDownFailTime:   initialScaleTime,
 		scaleDown:               scaleDown,
 		processors:              processors,
 		processorCallbacks:      processorCallbacks,
@@ -257,7 +260,9 @@ func (a *StaticAutoscaler) RunOnce(currentTime time.Time) errors.AutoscalerError
 	}
 
 	// Call CloudProvider.Refresh before any other calls to cloud provider.
+	refreshStart := time.Now()
 	err = a.AutoscalingContext.CloudProvider.Refresh()
+	metrics.UpdateDurationFromStart(metrics.CloudProviderRefresh, refreshStart)
 	if err != nil {
 		klog.Errorf("Failed to refresh cloud provider config: %v", err)
 		return errors.ToAutoscalerError(errors.CloudProviderError, err)
@@ -799,7 +804,7 @@ func getUpcomingNodeInfos(registry *clusterstate.ClusterStateRegistry, nodeInfos
 			// Ensure new nodes have different names because nodeName
 			// will be used as a map key. Also deep copy pods (daemonsets &
 			// any pods added by cloud provider on template).
-			upcomingNodes = append(upcomingNodes, scheduler_utils.DeepCopyTemplateNode(nodeTemplate, i))
+			upcomingNodes = append(upcomingNodes, scheduler_utils.DeepCopyTemplateNode(nodeTemplate, fmt.Sprintf("upcoming-%d", i)))
 		}
 	}
 	return upcomingNodes
