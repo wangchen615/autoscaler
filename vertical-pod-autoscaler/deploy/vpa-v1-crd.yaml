@@ -35,7 +35,9 @@ spec:
           required: []
           properties:
             recommenderName:
-              type: string
+              type: array
+              items:
+                type: string
             targetRef:
               type: object
             updatePolicy:
