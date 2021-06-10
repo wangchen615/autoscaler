@@ -40,7 +40,7 @@ var (
 		model.ResourceCPU:    model.CPUAmountFromCores(3.14),
 		model.ResourceMemory: model.MemoryAmountFromBytes(3.14e9),
 	}
-	recommenderName  = "default"
+	recommenderName = "default"
 )
 
 func addVpa(t *testing.T, cluster *model.ClusterState, vpaID model.VpaID, selector string) *model.Vpa {
