@@ -32,6 +32,7 @@ import (
 	"k8s.io/klog"
 )
 
+// Denote the current recommender name as the "default" one.
 const RecommenderName = "default"
 
 var (

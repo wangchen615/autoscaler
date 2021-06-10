@@ -94,9 +94,9 @@ type PodState struct {
 }
 
 // NewClusterState returns a new ClusterState with no pods.
-func NewClusterState(recommender_name string) *ClusterState {
+func NewClusterState(recommenderName string) *ClusterState {
 	return &ClusterState{
-		RecommenderName:   recommender_name,
+		RecommenderName:   recommenderName,
 		Pods:              make(map[PodID]*PodState),
 		Vpas:              make(map[VpaID]*Vpa),
 		EmptyVPAs:         make(map[VpaID]time.Time),
