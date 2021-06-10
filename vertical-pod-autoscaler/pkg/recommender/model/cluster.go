@@ -39,7 +39,7 @@ const (
 // All input to the VPA Recommender algorithm lives in this structure.
 type ClusterState struct {
 	// Denote the recommender name
-	RecommenderName	string
+	RecommenderName string
 	// Pods in the cluster.
 	Pods map[PodID]*PodState
 	// VPA objects in the cluster.

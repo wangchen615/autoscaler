@@ -58,7 +58,7 @@ const (
 	scaleCacheEntryFreshnessTime time.Duration = 10 * time.Minute
 	scaleCacheEntryJitterFactor  float64       = 1.
 	defaultResyncPeriod          time.Duration = 10 * time.Minute
-	defaultRecommenderName					   = "default"
+	defaultRecommenderName                     = "default"
 )
 
 // ClusterStateFeeder can update state of ClusterState object.
@@ -351,7 +351,7 @@ func (feeder *clusterStateFeeder) LoadVPAs() {
 	var vpaCRDs []*vpa_types.VerticalPodAutoscaler
 	for _, vpaCRD := range allVpaCRDs {
 		currentRecommenderName := feeder.clusterState.RecommenderName
-		if len(vpaCRD.Spec.RecommenderName) > 0{
+		if len(vpaCRD.Spec.RecommenderName) > 0 {
 			if !findElement(vpaCRD.Spec.RecommenderName, currentRecommenderName) {
 				klog.V(3).Infof("Ignoring the vpaCRD %s as its recommender %v does not include the current recommender's name %v", vpaCRD.Name, vpaCRD.Spec.RecommenderName, currentRecommenderName)
 				continue
