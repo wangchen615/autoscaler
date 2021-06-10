@@ -90,6 +90,9 @@ type VerticalPodAutoscalerSpec struct {
 	// resources for all containers in the pod, without additional constraints.
 	// +optional
 	ResourcePolicy *PodResourcePolicy `json:"resourcePolicy,omitempty" protobuf:"bytes,3,opt,name=resourcePolicy"`
+
+	// Denote the recommender to be used
+	RecommenderName []string `json:"recommenderName,omitempty" protobuf:"bytes,1,opt,name=recommenderName"`
 }
 
 // PodUpdatePolicy describes the rules on how changes are applied to the pods.

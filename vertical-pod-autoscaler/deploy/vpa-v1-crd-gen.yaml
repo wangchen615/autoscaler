@@ -268,6 +268,11 @@ spec:
             description: 'Specification of the behavior of the autoscaler. More info:
               https://git.k8s.io/community/contributors/devel/api-conventions.md#spec-and-status.'
             properties:
+              recommenderName:
+                description: Denote the recommender to be used
+                items:
+                  type: string
+                type: array
               resourcePolicy:
                 description: Controls how the autoscaler computes recommended resources.
                   The resource policy may be used to set constraints on the recommendations

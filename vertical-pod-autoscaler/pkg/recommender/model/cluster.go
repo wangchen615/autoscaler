@@ -38,6 +38,8 @@ const (
 // events (container OOMs).
 // All input to the VPA Recommender algorithm lives in this structure.
 type ClusterState struct {
+	// Denote the recommender name
+	RecommenderName	string
 	// Pods in the cluster.
 	Pods map[PodID]*PodState
 	// VPA objects in the cluster.
@@ -92,8 +94,9 @@ type PodState struct {
 }
 
 // NewClusterState returns a new ClusterState with no pods.
-func NewClusterState() *ClusterState {
+func NewClusterState(recommender_name string) *ClusterState {
 	return &ClusterState{
+		RecommenderName:   recommender_name,
 		Pods:              make(map[PodID]*PodState),
 		Vpas:              make(map[VpaID]*Vpa),
 		EmptyVPAs:         make(map[VpaID]time.Time),
