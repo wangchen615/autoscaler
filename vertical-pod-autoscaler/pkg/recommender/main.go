@@ -33,7 +33,7 @@ import (
 )
 
 // RecommenderName denotes the current recommender name as the "default" one.
-const RecommenderName = "default"
+const RecommenderName = "chenw"
 
 var (
 	metricsFetcherInterval = flag.Duration("recommender-interval", 1*time.Minute, `How often metrics should be fetched`)

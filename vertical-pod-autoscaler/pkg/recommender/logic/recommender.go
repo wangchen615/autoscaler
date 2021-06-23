@@ -99,13 +99,23 @@ func FilterControlledResources(estimation model.Resources, controlledResources [
 
 // CreatePodResourceRecommender returns the primary recommender.
 func CreatePodResourceRecommender() PodResourceRecommender {
-	targetCPUPercentile := 0.9
-	lowerBoundCPUPercentile := 0.5
-	upperBoundCPUPercentile := 0.95
+	// targetCPUPercentile := 0.9
+	// lowerBoundCPUPercentile := 0.5
+	// upperBoundCPUPercentile := 0.95
 
-	targetMemoryPeaksPercentile := 0.9
-	lowerBoundMemoryPeaksPercentile := 0.5
-	upperBoundMemoryPeaksPercentile := 0.95
+	// Changed for testing chenw's recommender
+	targetCPUPercentile := 0.99
+	lowerBoundCPUPercentile := 0.9
+	upperBoundCPUPercentile := 1.0
+
+	// targetMemoryPeaksPercentile := 0.9
+	// lowerBoundMemoryPeaksPercentile := 0.5
+	// upperBoundMemoryPeaksPercentile := 0.95
+
+	// Changed for testing chenw's recommender
+	targetMemoryPeaksPercentile := 0.99
+	lowerBoundMemoryPeaksPercentile := 0.9
+	upperBoundMemoryPeaksPercentile := 1.0
 
 	targetEstimator := NewPercentileEstimator(targetCPUPercentile, targetMemoryPeaksPercentile)
 	lowerBoundEstimator := NewPercentileEstimator(lowerBoundCPUPercentile, lowerBoundMemoryPeaksPercentile)
