@@ -103,23 +103,25 @@ func CreatePodResourceRecommender() PodResourceRecommender {
 	// lowerBoundCPUPercentile := 0.5
 	// upperBoundCPUPercentile := 0.95
 
-	// Changed for testing chenw's recommender
-	targetCPUPercentile := 0.99
-	lowerBoundCPUPercentile := 0.9
-	upperBoundCPUPercentile := 1.0
-
 	// targetMemoryPeaksPercentile := 0.9
 	// lowerBoundMemoryPeaksPercentile := 0.5
 	// upperBoundMemoryPeaksPercentile := 0.95
 
-	// Changed for testing chenw's recommender
-	targetMemoryPeaksPercentile := 0.99
-	lowerBoundMemoryPeaksPercentile := 0.9
-	upperBoundMemoryPeaksPercentile := 1.0
-
-	targetEstimator := NewPercentileEstimator(targetCPUPercentile, targetMemoryPeaksPercentile)
-	lowerBoundEstimator := NewPercentileEstimator(lowerBoundCPUPercentile, lowerBoundMemoryPeaksPercentile)
-	upperBoundEstimator := NewPercentileEstimator(upperBoundCPUPercentile, upperBoundMemoryPeaksPercentile)
+	// targetEstimator := NewPercentileEstimator(targetCPUPercentile, targetMemoryPeaksPercentile)
+	targetEstimator := NewConstEstimator(model.Resources{
+		model.ResourceCPU:    model.CPUAmountFromCores(1),
+		model.ResourceMemory: model.MemoryAmountFromBytes(2e6),
+	})
+	// lowerBoundEstimator := NewPercentileEstimator(lowerBoundCPUPercentile, lowerBoundMemoryPeaksPercentile)
+	lowerBoundEstimator := NewConstEstimator(model.Resources{
+		model.ResourceCPU:    model.CPUAmountFromCores(1),
+		model.ResourceMemory: model.MemoryAmountFromBytes(2e6),
+	})
+	// upperBoundEstimator := NewPercentileEstimator(upperBoundCPUPercentile, upperBoundMemoryPeaksPercentile)
+	upperBoundEstimator := NewConstEstimator(model.Resources{
+		model.ResourceCPU:    model.CPUAmountFromCores(1),
+		model.ResourceMemory: model.MemoryAmountFromBytes(2e6),
+	})
 
 	targetEstimator = WithMargin(*safetyMarginFraction, targetEstimator)
 	lowerBoundEstimator = WithMargin(*safetyMarginFraction, lowerBoundEstimator)
@@ -129,7 +131,7 @@ func CreatePodResourceRecommender() PodResourceRecommender {
 	// that the updater will be less eager to evict pods with short history
 	// in order to reclaim unused resources.
 	// Using the confidence multiplier 1 with exponent +1 means that
-	// the upper bound is multiplied by (1 + 1/history-length-in-days).
+	// the upper bound is multiplied by (1 + 1/history-length-in-days)^1.
 	// See estimator.go to see how the history length and the confidence
 	// multiplier are determined. The formula yields the following multipliers:
 	// No history     : *INF  (do not force pod eviction)
